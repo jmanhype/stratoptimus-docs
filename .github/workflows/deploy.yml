@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - master
+    paths-ignore:
+      - '**.github/workflows/deploy.yml'
 
 jobs:
   deploy:
@@ -29,21 +31,13 @@ jobs:
               "start": "next start"
             },
             "dependencies": {
-              "next": "^13.0.0",
-              "nextra": "^2.0.0",
-              "nextra-theme-docs": "^2.0.0",
-              "react": "^18.2.0",
-              "react-dom": "^18.2.0"
+              "next": "13.4.7",
+              "nextra": "2.0.0",
+              "nextra-theme-docs": "2.0.0",
+              "react": "18.2.0",
+              "react-dom": "18.2.0"
             }
           }' > package.json
-
-      - name: Commit package.json
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add package.json next.config.js theme.config.js pages/index.mdx
-          git commit -m "Add package.json and configuration files" || echo "No changes to commit"
-          git push
 
       - name: Create next.config.js
         run: |
@@ -67,6 +61,22 @@ jobs:
         run: |
           mkdir -p pages
           echo "# Welcome to StratOptimus-TradingWizard" > pages/index.mdx
+
+      - name: Commit package.json and configuration files
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add package.json next.config.js theme.config.js pages/index.mdx
+          git commit -m "Add package.json and configuration files" || echo "No changes to commit"
+          git push
+
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
       - name: Install dependencies
         run: npm install
