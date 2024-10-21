@@ -23,15 +23,32 @@ jobs:
             "name": "stratoptimus-docs",
             "version": "1.0.0",
             "scripts": {
-              "build": "nextra build"
+              "build": "next build"
             }
           }' > package.json
 
+      - name: Create next.config.js
+        run: |
+          echo "const withNextra = require('nextra')({
+            theme: 'nextra-theme-docs',
+            themeConfig: './theme.config.js'
+          })
+          module.exports = withNextra()" > next.config.js
+
+      - name: Create theme.config.js
+        run: |
+          echo "export default {
+            logo: <span>StratOptimus-TradingWizard</span>,
+            project: {
+              link: 'https://github.com/jmanhype/stratoptimus-docs'
+            }
+          }" > theme.config.js
+
       - name: Install dependencies
-        run: npm install -g nextra next react react-dom
+        run: npm install nextra next react react-dom
 
       - name: Build
-        run: npx nextra build
+        run: npx next build
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
