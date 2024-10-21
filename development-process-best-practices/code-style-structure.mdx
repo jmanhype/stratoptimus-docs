@@ -1,0 +1,102 @@
+import { Callout, Steps, Step } from "nextra-theme-docs";
+
+# Code Style and Structure
+
+A well-defined code style and structure are crucial for the maintainability and readability of any software project. In the **StratOptimus-TradingWizard** project, we adhere to industry-standard best practices to ensure consistent and efficient code. This section outlines these practices and offers guidance on how they are implemented within the project.
+
+## PEP 8 Compliance
+
+We strictly follow the [PEP 8](https://www.python.org/dev/peps/pep-0008/) guidelines, the official style guide for Python code. This helps maintain consistency across the codebase and improves readability. Key aspects of PEP 8 compliance include:
+
+- **Indentation:** Use 4 spaces per indentation level.
+- **Maximum Line Length:** Limit all lines to a maximum of 79 characters.
+- **Imports:** Place imports at the top of the file, grouped into three categories, each separated by a blank line:
+  - Standard library imports
+  - Related third-party imports
+  - Local application/library specific imports
+
+<Callout>
+It's recommended to use tools like `flake8` or `pylint` to automatically check your code for PEP 8 compliance.
+</Callout>
+
+## Modular Design
+
+Adopting a modular design approach allows us to break the codebase into smaller, manageable, and reusable components. Each module in the project encapsulates specific functionality, promoting separation of concerns and ease of debugging.
+
+- **Functionality Separation:** Group related functions into modules or classes that perform a cohesive set of tasks.
+- **Code Reusability:** Write generic functions and modules that can be reused across the project. Avoiding duplicate code reduces maintenance efforts.
+
+### Example Structure
+
+Here's an example of how modules are structured in the project:
+
+```plain text
+best_trading_strategy/
+├── actions/
+│   ├── project_management.py
+│   ├── write_code.py
+│   └── research.py
+├── workflows/
+│   ├── round_1/
+│   └── template/
+├── prompts/
+└── src/
+```
+
+## Descriptive Naming
+
+Naming conventions play a crucial role in conveying the intent of code components. In our project, we ensure that names are descriptive and self-explanatory.
+
+- **Variables and Functions:** Use clear and descriptive names like `learning_rate`, `optimize_parameters`, and `fetch_market_data`.
+- **Consistency:** Stick to a single naming convention throughout the project, such as using snake_case for variables and functions.
+
+<Steps>
+
+### Step 1
+
+When defining a variable to store user inputs, use a name that reflects its purpose, like `user_input`.
+
+### Step 2
+
+For functions, use action-oriented names. For example, a function that processes trading data should be named `process_trading_data`.
+
+</Steps>
+
+## Avoiding In-Place Mutations
+
+To maintain code clarity and avoid potential side effects, we emphasize the use of immutable data structures.
+
+- **Immutable Types:** Prefer immutable data types like tuples over lists unless mutation is necessary.
+- **Function Outputs:** Functions should return new objects instead of modifying the input parameters.
+
+## Preferred Programming Paradigms
+
+While the project is built using Python, following functional programming principles can increase code clarity and ease of testing.
+
+- **Pure Functions:** Implement functions that do not produce side effects and whose output solely depends on their inputs.
+- **Higher-Order Functions:** Utilize higher-order functions that can take other functions as arguments or return them.
+
+## Example Code
+
+Here is an example of a well-styled function in the project:
+
+```python
+def calculate_sharpe_ratio(returns, risk_free_rate):
+    """Calculate the Sharpe ratio for a given set of returns.
+
+    Args:
+        returns (array-like): The returns of the investment.
+        risk_free_rate (float): The risk-free rate of return.
+
+    Returns:
+        float: The Sharpe ratio.
+    """
+    excess_returns = [r - risk_free_rate for r in returns]
+    mean_excess_return = np.mean(excess_returns)
+    stddev_excess_return = np.std(excess_returns)
+    return mean_excess_return / stddev_excess_return
+```
+
+This function is concise, well-documented, and adheres to all discussed coding standards.
+
+In conclusion, adhering to these code style and structure guidelines ensures that the **StratOptimus-TradingWizard** project remains easy to navigate, understand, and extend. For more on our development practices, see the [Development Process and Best Practices](/development-process-best-practices).

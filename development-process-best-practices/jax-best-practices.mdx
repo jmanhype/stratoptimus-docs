@@ -1,0 +1,109 @@
+import { Callout, Steps, Step } from "nextra-theme-docs";
+
+# JAX Best Practices
+
+JAX is a powerful library for high-performance numerical computations in Python, offering facilities for automatic differentiation and just-in-time (JIT) compilation. In the context of the **StratOptimus-TradingWizard** project, utilizing JAX efficiently is essential for developing robust and scalable trading algorithms. Here, we explore some best practices to ensure optimal use of JAX capabilities.
+
+## Functional API Usage
+
+JAX promotes the use of a functional programming style, which enhances code readability and maintainability.
+
+- **Statelessness and Immutability:** Functions should be pure, meaning they depend only on their inputs and have no side effects, such as modifying global variables or in-place mutations.
+  
+Example:
+```python
+import jax.numpy as jnp
+import jax
+
+def relu(x):
+    return jnp.maximum(0, x)
+
+grad_relu = jax.grad(lambda x: jnp.sum(relu(x)))
+```
+
+## Automatic Differentiation
+
+JAX's automatic differentiation is a core feature that allows gradient computation with ease.
+
+- **Using `jax.grad`:** This function is ideal for obtaining the gradient of scalar-valued functions.
+
+- **`jax.value_and_grad`:** Use this when you need both the value of the function and its gradient.
+
+### Example:
+
+```python
+def loss(weights, inputs):
+    return jnp.sum(weights * inputs ** 2)
+
+weights = jnp.array([1.0, 2.0, 3.0])
+inputs = jnp.array([0.1, 0.2, 0.3])
+loss_value, grad_loss = jax.value_and_grad(loss)(weights, inputs)
+```
+
+<Callout> If your function returns an array, use `jax.jacobian` for differentiation instead of `jax.grad`. </Callout>
+
+## Just-In-Time Compilation (JIT)
+
+JIT compilation is a powerful tool in JAX that can drastically enhance performance. Here's how to leverage it effectively:
+
+- **Identify Hotspots:** Focus on computationally intensive functions that are called repeatedly. These are prime candidates for JIT compilation.
+  
+- **Avoid Python Control Structures:** Ensure that the functions you plan to JIT compile use JAX's control flow operations instead of Python's native loops or conditionals.
+
+### Example:
+
+```python
+@jax.jit
+def compute(inputs):
+    return jnp.dot(inputs, inputs.T)
+
+result = compute(jnp.array([[1, 2], [3, 4]]))
+```
+
+## Vectorization with `vmap`
+
+The `jax.vmap` function allows you to vectorize your operations, taking advantage of parallel computations without explicit loops.
+
+### Example:
+```python
+def compute_square(x):
+    return x ** 2
+
+vectorized_square = jax.vmap(compute_square)
+result = vectorized_square(jnp.array([1, 2, 3, 4]))
+```
+
+<Callout> Prefer `vmap` over manual looping to ensure consistency across all vectorized operations. <</Callout>
+
+## Managing Randomness
+
+JAX has a unique approach to randomness, employing a functional pseudo-random number generator (PRNG).
+
+- **Use PRNG keys:** Always pass PRNG keys explicitly to functions requiring randomness to maintain reproducibility.
+
+- **Split Keys:** Generate new keys using `jax.random.split`.
+
+### Example:
+```python
+import jax.random as random
+
+key = random.PRNGKey(0)
+key, subkey = random.split(key)
+random_numbers = random.uniform(subkey, (5,))
+```
+
+## JAX Control Flow
+
+JAX provides its own control flow operations for loops and conditionals, ensuring compatibility with JIT compilation.
+
+- **Use `jax.lax.scan` for loops** and `jax.lax.cond` for conditional statements.
+
+### Example of a simple loop:
+```python
+def loop_body(carry, x):
+    return carry + x, carry + x
+
+result, _ = jax.lax.scan(loop_body, 0, jnp.arange(5))
+```
+
+By adhering to these best practices, you can fully exploit JAX's powerful features, achieving efficient and scalable implementations within the [project architecture](/project-architecture). For further insights into JAX's capabilities, please refer to the [key components](key-functional-components) section for more detailed examples and applications in the project.
