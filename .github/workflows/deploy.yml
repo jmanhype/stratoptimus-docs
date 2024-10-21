@@ -33,7 +33,7 @@ jobs:
             theme: 'nextra-theme-docs',
             themeConfig: './theme.config.js'
           })
-          module.exports = withNextra({})" > next.config.js
+          module.exports = withNextra()" > next.config.js
 
       - name: Create theme.config.js
         run: |
@@ -44,11 +44,16 @@ jobs:
             }
           }" > theme.config.js
 
+      - name: Create pages directory and index.js
+        run: |
+          mkdir -p pages
+          echo "export default function Home() { return <div>Welcome to StratOptimus-TradingWizard</div> }" > pages/index.js
+
       - name: Install dependencies
         run: npm install nextra next react react-dom
 
       - name: Build
-        run: npx next build && npx next export
+        run: npm run build
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
