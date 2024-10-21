@@ -33,7 +33,7 @@ jobs:
             theme: 'nextra-theme-docs',
             themeConfig: './theme.config.js'
           })
-          module.exports = withNextra()" > next.config.js
+          module.exports = withNextra({})" > next.config.js
 
       - name: Create theme.config.js
         run: |
@@ -48,7 +48,7 @@ jobs:
         run: npm install nextra next react react-dom
 
       - name: Build
-        run: npx next build
+        run: npx next build && npx next export
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
