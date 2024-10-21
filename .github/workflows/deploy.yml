@@ -22,38 +22,52 @@ jobs:
           echo '{
             "name": "stratoptimus-docs",
             "version": "1.0.0",
+            "type": "module",
             "scripts": {
-              "build": "next build"
+              "dev": "next dev",
+              "build": "next build",
+              "start": "next start"
+            },
+            "dependencies": {
+              "next": "latest",
+              "nextra": "latest",
+              "nextra-theme-docs": "latest",
+              "react": "latest",
+              "react-dom": "latest"
             }
           }' > package.json
 
       - name: Create next.config.js
         run: |
-          echo "const withNextra = require('nextra')({
+          echo "import withNextra from 'nextra'
+
+          export default withNextra({
             theme: 'nextra-theme-docs',
-            themeConfig: './theme.config.js'
-          })
-          module.exports = withNextra()" > next.config.js
+            themeConfig: './theme.config.js',
+          })" > next.config.js
 
       - name: Create theme.config.js
         run: |
           echo "export default {
-            logo: <span>StratOptimus-TradingWizard</span>,
+            logo: '<span>StratOptimus-TradingWizard</span>',
             project: {
               link: 'https://github.com/jmanhype/stratoptimus-docs'
             }
           }" > theme.config.js
 
-      - name: Create pages directory and index.js
+      - name: Create pages directory and index.mdx
         run: |
           mkdir -p pages
-          echo "export default function Home() { return <div>Welcome to StratOptimus-TradingWizard</div> }" > pages/index.js
+          echo "# Welcome to StratOptimus-TradingWizard" > pages/index.mdx
 
       - name: Install dependencies
-        run: npm install nextra next react react-dom
+        run: npm install
 
       - name: Build
         run: npm run build
+
+      - name: Export static files
+        run: npx next export
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
