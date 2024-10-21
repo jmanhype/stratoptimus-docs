@@ -18,10 +18,10 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        run: npm install -g nextra
+        run: npm install nextra next react react-dom
 
       - name: Build
-        run: nextra build
+        run: npx nextra build
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
