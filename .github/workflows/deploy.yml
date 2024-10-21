@@ -17,11 +17,21 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Create package.json
+        run: |
+          echo '{
+            "name": "stratoptimus-docs",
+            "version": "1.0.0",
+            "scripts": {
+              "build": "nextra build"
+            }
+          }' > package.json
+
       - name: Install dependencies
         run: npm install nextra next react react-dom
 
       - name: Build
-        run: npx nextra build
+        run: npm run build
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
