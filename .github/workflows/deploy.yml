@@ -28,10 +28,10 @@ jobs:
           }' > package.json
 
       - name: Install dependencies
-        run: npm install nextra next react react-dom
+        run: npm install -g nextra next react react-dom
 
       - name: Build
-        run: npm run build
+        run: npx nextra build
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
