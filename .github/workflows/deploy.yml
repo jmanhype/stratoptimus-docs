@@ -29,13 +29,21 @@ jobs:
               "start": "next start"
             },
             "dependencies": {
-              "next": "latest",
-              "nextra": "latest",
-              "nextra-theme-docs": "latest",
-              "react": "latest",
-              "react-dom": "latest"
+              "next": "^13.0.0",
+              "nextra": "^2.0.0",
+              "nextra-theme-docs": "^2.0.0",
+              "react": "^18.2.0",
+              "react-dom": "^18.2.0"
             }
           }' > package.json
+
+      - name: Commit package.json
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add package.json next.config.js theme.config.js pages/index.mdx
+          git commit -m "Add package.json and configuration files" || echo "No changes to commit"
+          git push
 
       - name: Create next.config.js
         run: |
@@ -65,6 +73,9 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Export static files
+        run: npx next export
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
