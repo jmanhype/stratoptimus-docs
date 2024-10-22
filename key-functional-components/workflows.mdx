@@ -1,5 +1,3 @@
-import { Callout, Steps, Step } from "nextra-theme-docs";
-
 # Workflows
 
 The **Workflows** section of the StratOptimus-TradingWizard project is crucial for defining the sequence of operations that guide the development lifecycle of trading strategies. Workflows orchestrate the interactions between various components, ensuring that tasks are performed in a structured and efficient manner. This section will explore the significance of workflows, how they are structured within the project, and offer a deep dive into some specific examples.
@@ -37,6 +35,83 @@ graph TD;
 
 This workflow showcases the high-level steps involved in creating a new trading strategy, ensuring thorough planning, execution, and refinement before deployment.
 
+### Example: Performance Testing and Optimization Workflow
+
+The performance testing and optimization workflow is crucial for evaluating and enhancing strategy effectiveness. Below is an example of how this workflow might be structured:
+
+```mermaid
+graph TD;
+    A[Data Collection] --> B[Backtesting];
+    B --> C[Parameter Tuning];
+    C --> D[Performance Evaluation];
+    D --> E[Strategy Adjustment];
+    E --> A;
+```
+
+Here, the loop from Strategy Adjustment back to Data Collection highlights the iterative nature of optimizing trading strategies.
+
+### Example: Run Optimization Workflow
+
+With the introduction of the `run_optimization.py` and enhancements in `graph.py`, the Run Optimization Workflow has become a core component of the trading strategy development process. This workflow leverages asynchronous execution and recursive optimization to fine-tune strategy parameters continuously.
+
+```mermaid
+graph TD;
+    A[Start Optimization] --> B[Load Configuration];
+    B --> C[Initialize LLM Instance];
+    C --> D[Load Trading Data];
+    D --> E[Define Initial Parameters];
+    E --> F[Recursive Optimization];
+    F --> G[Evaluate Performance];
+    G --> H{Converged?};
+    H -->|Yes| I[Save Best Strategy];
+    H -->|No| F;
+    I --> J[End Optimization];
+```
+
+#### Steps in Run Optimization Workflow
+
+<Steps>
+### Step 1: Start Optimization
+
+Initiate the optimization process by executing the `run_optimization.py` script. This triggers the entire workflow.
+
+### Step 2: Load Configuration
+
+Load the trading configuration from the specified YAML file. This includes parameters for the LLM, initial strategy parameters, dataset information, and optimization settings.
+
+### Step 3: Initialize LLM Instance
+
+Create an instance of the Language Learning Model (LLM) using the loaded configuration. The LLM assists in parameter optimization through intelligent suggestions and evaluations.
+
+### Step 4: Load Trading Data
+
+Fetch trading data using the `load_trade_data` function. Ensure that the data is correctly formatted and accessible for backtesting.
+
+### Step 5: Define Initial Parameters
+
+Set the initial strategy parameters, which include thresholds, delays, window sizes, and other relevant metrics necessary for trading strategy optimization.
+
+### Step 6: Recursive Optimization
+
+Execute the `recursive_optimization` function, which iteratively adjusts strategy parameters to maximize performance metrics such as total return, Sharpe ratio, and maximum drawdown. This step leverages asynchronous execution to handle multiple evaluations in parallel, enhancing efficiency.
+
+### Step 7: Evaluate Performance
+
+Assess the optimized parameters by conducting backtests. Analyze the results to determine the effectiveness of the parameter adjustments.
+
+### Step 8: Converged?
+
+Check if the optimization has met the convergence threshold. If not, revert to recursive optimization for further fine-tuning. This loop continues until the strategy parameters converge to optimal values.
+
+### Step 9: Save Best Strategy
+
+Once convergence is achieved, save the best-performing strategy parameters to a JSON file for future reference and deployment.
+
+### Step 10: End Optimization
+
+Conclude the optimization process, ensuring all results are logged and saved appropriately.
+</Steps>
+
 ## Managing Workflows with MetaGPT
 
 The MetaGPT framework plays a vital role in managing workflows. It helps define custom actions and orchestrates them in predefined sequences to achieve desired outcomes.
@@ -65,6 +140,24 @@ graph TD;
 ```
 
 Here, the loop from Strategy Adjustment back to Data Collection highlights the iterative nature of optimizing trading strategies.
+
+### Example Workflow: Run Optimization
+
+The Run Optimization Workflow integrates the newly developed `run_optimization.py` and enhanced `graph.py` to perform comprehensive trading strategy optimization. This workflow ensures that strategy parameters are continuously refined to achieve optimal performance.
+
+```mermaid
+graph TD;
+    A[Start Optimization] --> B[Load Configuration];
+    B --> C[Initialize LLM Instance];
+    C --> D[Load Trading Data];
+    D --> E[Define Initial Parameters];
+    E --> F[Recursive Optimization];
+    F --> G[Evaluate Performance];
+    G --> H{Converged?};
+    H -->|Yes| I[Save Best Strategy];
+    H -->|No| F;
+    I --> J[End Optimization];
+```
 
 ## Creating Your Own Workflows
 

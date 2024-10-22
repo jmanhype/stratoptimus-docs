@@ -1,8 +1,6 @@
-import { Callout, Steps, Step } from "nextra-theme-docs";
-
 # JAX and High-Performance Computing
 
-In leveraging JAX for our project, we harness the power of high-performance computing to create efficient, scalable trading strategies. This section provides an overview of how JAX's capabilities enhance our trading strategy project, focusing on **Just-In-Time (JIT) Compilation**, **Automatic Differentiation**, and **Vectorization**. These are critical to ensure that our algorithms run swiftly and accurately, processing extensive financial data with ease.
+In leveraging JAX for our project, we harness the power of high-performance computing to create efficient, scalable trading strategies. This section provides an overview of how JAX's capabilities enhance our trading strategy project, focusing on **Just-In-Time (JIT) Compilation**, **Automatic Differentiation**, **Vectorization**, and **Asynchronous Execution**. These are critical to ensure that our algorithms run swiftly and accurately, processing extensive financial data with ease.
 
 ## Just-In-Time (JIT) Compilation
 
@@ -85,8 +83,55 @@ graph TD;
   D --> E[End]
 ```
 
+## Asynchronous Execution
+
+To further enhance performance and scalability, especially during optimization workflows, we utilize Python's `asyncio` in conjunction with JAX. This allows us to handle multiple optimization tasks concurrently, maximizing resource utilization and reducing overall execution time.
+
+### Benefits of Asynchronous Execution
+
+- **Concurrency**: Manage multiple tasks simultaneously without blocking, leading to efficient use of computational resources.
+- **Scalability**: Easily scale the number of parallel evaluations based on available hardware.
+- **Performance**: Reduce idle time by overlapping I/O-bound and CPU-bound operations.
+
+**Example**: Implementing asynchronous recursive optimization with parallel evaluations.
+
+```python
+import asyncio
+import jax
+import jax.numpy as jnp
+
+async def optimize_parameters(params, trading_data):
+    optimized = jax.jit(trading_loss)(params)  # JIT-compiled optimization step
+    return optimized
+
+async def recursive_optimization(initial_params, dataset, llm, trading_data, max_iterations=45, convergence_threshold=0.01, parallel_evaluations=5):
+    tasks = []
+    for _ in range(parallel_evaluations):
+        task = asyncio.create_task(optimize_parameters(initial_params, trading_data))
+        tasks.append(task)
+    
+    results = await asyncio.gather(*tasks)
+    # Process results and check for convergence
+    return results[0], jnp.mean(results)
+
+# Example usage within an async workflow
+async def main():
+    best_strategy, best_performance = await recursive_optimization(
+        initial_params=initial_params,
+        dataset=dataset,
+        llm=llm,
+        trading_data=trading_data,
+        max_iterations=45,
+        convergence_threshold=0.01,
+        parallel_evaluations=5
+    )
+    print(f"Best Strategy: {best_strategy}, Performance: {best_performance}")
+
+asyncio.run(main())
+```
+
 ## Conclusion
 
-Employing JAX's high-performance computing features like JIT compilation, automatic differentiation, and vectorization, we achieve a robust and agile trading strategy framework. These capabilities not only optimize our processing power but also ensure that our models are both responsive and adaptable to the rapid changes in financial markets.
+Employing JAX's high-performance computing features like JIT compilation, automatic differentiation, vectorization, and asynchronous execution, we achieve a robust and agile trading strategy framework. These capabilities not only optimize our processing power but also ensure that our models are both responsive and adaptable to the rapid changes in financial markets.
 
 For further insights into integrating JAX with machine learning models, see the [Machine Learning Models](/project-architecture/machine-learning-models) section. Explore more architectural elements in our broader [Project Architecture](/project-architecture) overview.
