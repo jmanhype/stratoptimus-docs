@@ -1,5 +1,3 @@
-import { Callout, Steps, Step } from "nextra-theme-docs";
-
 # Installation and Usage
 
 Welcome to the installation and usage guide for the **StratOptimus-TradingWizard** project. This section will walk you through setting up the project on your local machine and provide steps to effectively utilize its powerful features.
@@ -58,25 +56,70 @@ pip install -r requirements.txt
 
 <Callout>
 
-**Ensure** that `requirements.txt` includes necessary packages like `jax`, `numpy`, `metagpt`, and `pytest`.
+**Ensure** that `requirements.txt` includes necessary packages like `jax`, `numpy`, `metagpt`, `pytest`, `vectorbtpro`, and `python-dotenv`.
 
 </Callout>
 
 ### Step 4: Set Up Configuration
 
-Configure the project by editing the `.lumentis/wizard.json` configuration file as needed:
+Configure the project by editing the `config/trading_config.yaml` file and setting up environment variables.
 
-```json
-{
-    "model_selection": "jax_model_v1",
-    "console_output": "verbose",
-    "learning_rate": 0.001,
-    "weights": [0.1, 0.2, 0.3],
-    "gradients": "auto"
-}
+#### Edit Configuration File
+
+Open the `config/trading_config.yaml` file and update it as needed:
+
+```yaml
+trading_data_path: "trading_data/trading_data.pickle"
+sample: 35
+check_convergence: true
+initial_round: 1
+max_rounds: 45
+convergence_threshold: 0.01
+
+initial_params:
+  take_profit: 0.08
+  stop_loss: 0.12
+  sl_window: 400
+  max_orders: 3
+  post_buy_delay: 2
+  post_sell_delay: 5
+  macd_signal_fast: 120
+  macd_signal_slow: 260
+  macd_signal_signal: 90
+  min_macd_signal_threshold: 0.0
+  max_macd_signal_threshold: 0.0
+  enable_sl_mod: false
+  enable_tp_mod: false
+  ma_window: 20
+  fees: 0.001
+
+llm_config:
+  model: "gpt-4"
+  api_key: "your-api-key-here"
 ```
 
 **Tip:** Adjust these parameters based on your specific requirements and experimentation plans.
+
+#### Set Up Environment Variables
+
+Create a `.env` file in the root directory of the project to store environment-specific variables. This file should include the following variables:
+
+```env
+TRADING_CONFIG_PATH=config/trading_config.yaml
+API_KEY=your-api-key-here
+```
+
+**Steps to Create `.env` File:**
+
+1. In the root directory of your project, create a new file named `.env`.
+2. Open the `.env` file and add the necessary environment variables as shown above.
+3. Replace `your-api-key-here` with your actual API key.
+
+<Callout>
+
+**Note:** Ensure that the `.env` file is listed in your `.gitignore` to prevent sensitive information from being committed to version control.
+
+</Callout>
 
 ### Step 5: Initialize the Project Workspace
 
@@ -93,6 +136,16 @@ Execute the initial workflow to generate the base trading strategy:
 ```bash
 python -m workflows.initialize_strategy
 ```
+
+### Step 7: Run Optimization Workflow
+
+To further optimize the trading strategy, execute the optimization workflow:
+
+```bash
+python Trading/run_optimization.py
+```
+
+This script will perform recursive optimization of your trading strategy parameters based on historical trading data.
 
 </Steps>
 
@@ -130,6 +183,26 @@ python -m trading.monitor_performance
 
 Ensure trading data is prepared according to the details in [Data Ingestion and Processing](/project-architecture).
 
+### Running Optimization
+
+To run the trading strategy optimization, use the following command:
+
+```bash
+python Trading/run_optimization.py
+```
+
+This script will execute the recursive optimization process, adjusting strategy parameters to enhance performance based on historical trading data.
+
+### Example Usage
+
+Here is a basic example of how to execute a predefined workflow:
+
+```bash
+python -m workflows.run_workflow --name initial_strategy_development
+```
+
+For more detailed usage scenarios, refer to the [Installation and Usage](/installation-usage) section.
+
 ## Visualizing the Workflow
 
 For a visual representation of how workflows are orchestrated, here's a simple `mermaid` diagram:
@@ -142,9 +215,11 @@ graph TD;
     D --> E[Configure Project];
     E --> F[Initialize Workspace];
     F --> G[Run Initial Workflow];
+    G --> H[Run Optimization];
+    H --> I[Monitor Performance];
 ```
 
-This diagram outlines the sequential steps to set up the project, offering a clear flow from start to utilization.
+This diagram outlines the sequential steps to set up the project, execute workflows, optimize strategies, and monitor performance.
 
 ## Conclusion
 
