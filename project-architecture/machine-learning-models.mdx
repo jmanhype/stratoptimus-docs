@@ -1,5 +1,3 @@
-import { Callout, Steps, Step } from "nextra-theme-docs";
-
 # Machine Learning Models
 
 The **Machine Learning Models** component is a crucial part of the StratOptimus-TradingWizard project's architecture. It plays a significant role in predictive analytics, trend analysis, and optimization of trading parameters. Below, we explore the key aspects of these models and how they integrate into the project's architecture.
@@ -57,6 +55,9 @@ JAX is crucial for optimizing machine learning models in this project. Its capab
 
 - **Automatic Differentiation**: Critical for training deep learning models using gradient descent.
 - **Just-In-Time Compilation**: Enhances performance by compiling Python code into efficient machine code, reducing latency.
+- **Parallel Evaluations**: Leveraging JAX's parallelism features to perform simultaneous evaluations of multiple trading strategies, thereby speeding up the optimization process.
+
+Additionally, the integration with High-Performance Computing (HPC) allows the project to handle large datasets and complex models efficiently, ensuring scalability and robustness in trading strategy optimization.
 
 ```mermaid
 graph TD;
@@ -65,10 +66,32 @@ graph TD;
     C --> D[Performance Evaluation];
     D --> E{Optimize};
     E -->|JAX Integration| F[Deployment];
+    E -->|Parallel Evaluations| G[Recursive Optimization];
+    G --> C;
 ```
+
+## Recursive Optimization Workflow
+
+The **Recursive Optimization** workflow leverages JAX's capabilities to iteratively refine trading strategy parameters. By performing parallel evaluations and utilizing just-in-time compilation, the optimization process becomes significantly faster and more efficient. This approach allows for more extensive parameter searches within the same time frame, leading to better-performing trading strategies.
+
+### Key Components:
+
+- **StrategyParameters**: Defines the configurable parameters of the trading strategy, such as take profit, stop loss, and MACD signals.
+- **BacktestResult**: Captures the performance metrics of a strategy, including total return, Sharpe ratio, and maximum drawdown.
+- **Recursive Optimization Function**: Iteratively adjusts strategy parameters based on backtest results to find the optimal configuration.
+
+### Example Workflow:
+
+1. **Initialize Parameters**: Start with a set of initial strategy parameters.
+2. **Optimize Parameters**: Use JAX to perform parallel evaluations of different parameter sets.
+3. **Evaluate Performance**: Backtest each parameter set and record performance metrics.
+4. **Refine Parameters**: Based on the results, adjust the parameters and repeat the optimization process.
+5. **Finalize Strategy**: Select the parameter set with the best performance metrics for deployment.
 
 ## Conclusion
 
 Machine learning models are at the heart of the StratOptimus-TradingWizard project, providing the predictive power required for effective trading strategies. By leveraging advanced techniques and tools like JAX, the project ensures that these models are not only accurate but also scalable and efficient.
+
+The integration of JAX with High-Performance Computing further enhances the performance and scalability of the machine learning models, enabling the project to handle large datasets and complex computations with ease. The recursive optimization workflow exemplifies how JAX's parallelism and just-in-time compilation can be utilized to achieve superior optimization results in trading strategy development.
 
 For more detailed insights, refer to the [Project Architecture](/project-architecture) section and explore subsections such as [JAX and High-Performance Computing](/project-architecture/jax-high-performance-computing).
