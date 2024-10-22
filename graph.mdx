@@ -1,0 +1,274 @@
+# Trading Strategy Optimization Workflow
+
+The `graph.py` file is a pivotal component of the StratOptimus-TradingWizard project, responsible for orchestrating the trading strategy optimization process. This documentation provides a comprehensive overview of the Trading Strategy Optimization Workflow, detailing its structure, functionality, and integration within the larger project framework.
+
+## Overview
+
+The **Trading Strategy Optimization Workflow** automates the process of refining trading strategies to enhance performance metrics such as total return, Sharpe ratio, and maximum drawdown. Leveraging asynchronous operations and recursive optimization techniques, this workflow ensures efficient and effective strategy development.
+
+## Key Responsibilities
+
+- **Loading Trading Data:** Fetches and prepares historical trading data for analysis.
+- **Parameter Optimization:** Utilizes a Language Learning Model (LLM) to optimize trading parameters.
+- **Strategy Evaluation:** Conducts backtests to assess the performance of optimized parameters.
+- **Result Logging:** Records outcomes and associated costs of the optimization process.
+
+## Implementation Details
+
+### Workflow Structure
+
+The workflow is structured to facilitate systematic progression and continuous improvement of trading strategies. It comprises several key components, each responsible for a specific aspect of the optimization process.
+
+```python:Trading/workflows/round_1/graph.py
+from typing import Literal, Dict, Any, Tuple, List
+from pydantic import BaseModel, Field
+from metagpt.provider.llm_provider_registry import create_llm_instance
+from metagpt.utils.cost_manager import CostManager
+import sys
+import os
+import asyncio
+import json
+import vectorbtpro as vbt
+
+# Add the project root directory to sys.path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+sys.path.insert(0, project_root)
+
+import scripts.optimized.Trading.workflows.template.operator as operator
+import scripts.optimized.Trading.workflows.round_1.prompt as prompt_custom
+from scripts.optimized.Trading.workflows.template.operator import (
+    get_parameter_optimizer,
+    get_strategy_evaluator
+)
+
+# Import the logging module and configure logging
+import logging
+import traceback
+
+# Set up logging configuration
+logging.basicConfig(
+    level=logging.DEBUG,  # Set to DEBUG to capture all levels of logs
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler("workflow_errors.log"),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
+
+# Define Pydantic models for operator responses
+class StrategyParameters(BaseModel):
+    take_profit: float = Field(default=0.08, description="Take profit percentage")
+    stop_loss: float = Field(default=0.12, description="Stop loss percentage")
+    sl_window: int = Field(default=400, description="Stop loss window")
+    max_orders: int = Field(default=3, description="Maximum number of concurrent orders")
+    order_size: float = Field(default=0.0025, description="Order size as a ratio of SOL pool")
+    post_buy_delay: int = Field(default=2, description="Delay after a buy order")
+    post_sell_delay: int = Field(default=5, description="Delay after a sell order")
+    macd_signal_fast: int = Field(default=120, description="MACD fast period")
+    macd_signal_slow: int = Field(default=260, description="MACD slow period")
+    macd_signal_signal: int = Field(default=90, description="MACD signal period")
+    min_macd_signal_threshold: float = Field(default=0.0, description="Minimum MACD signal threshold")
+    max_macd_signal_threshold: float = Field(default=0.0, description="Maximum MACD signal threshold")
+    enable_sl_mod: bool = Field(default=False, description="Enable stop loss modification")
+    enable_tp_mod: bool = Field(default=False, description="Enable take profit modification")
+
+class BacktestResult(BaseModel):
+    total_return: float = Field(default=0.0, description="Total return of the strategy")
+    sharpe_ratio: float = Field(default=0.0, description="Sharpe ratio of the strategy")
+    max_drawdown: float = Field(default=0.0, description="Maximum drawdown of the strategy")
+
+DatasetType = Literal["HumanEval", "MBPP", "GSM8K", "MATH", "HotpotQA", "DROP", "Trading"]
+
+class Workflow:
+    def __init__(
+        self,
+        name: str,
+        llm: Any,
+        dataset: DatasetType,
+        trading_data: Dict[str, Any]
+    ) -> None:
+        self.name = name
+        self.dataset = dataset
+        self.llm = llm
+        self.trading_data = trading_data
+        self.llm.cost_manager = CostManager()
+        self.custom = operator.Custom(self.llm)
+
+    async def __call__(self, initial_params: StrategyParameters) -> Tuple[Dict[str, Any], float]:
+        """
+        Executes the trading strategy optimization workflow.
+
+        Args:
+            initial_params (StrategyParameters): The initial parameters for the trading strategy.
+
+        Returns:
+            Tuple[Dict[str, Any], float]: Optimization results and total cost.
+        """
+        try:
+            logger.info("Starting Trading Strategy Optimization Workflow")
+            # Step 1: Parameter Optimization
+            optimizer = get_parameter_optimizer()
+            optimized_params = optimizer.optimize(initial_params, self.trading_data)
+
+            logger.debug(f"Optimized Parameters: {optimized_params}")
+
+            # Step 2: Strategy Evaluation
+            evaluator = get_strategy_evaluator()
+            backtest_result = evaluator.evaluate(optimized_params, self.trading_data)
+
+            logger.debug(f"Backtest Result: {backtest_result}")
+
+            # Step 3: Log Results
+            results = backtest_result.dict()
+            total_cost = self.llm.cost_manager.total_cost()
+
+            logger.info("Optimization Workflow Completed Successfully")
+            logger.info(f"Results: {results}")
+            logger.info(f"Total Cost: {total_cost}")
+
+            return results, total_cost
+
+        except Exception as e:
+            logger.error(f"An error occurred during the workflow: {str(e)}")
+            traceback.print_exc()
+            raise
+
+    def _ensure_dict(self, obj: Any) -> Dict[str, Any]:
+        """
+        Ensures that the provided object is a dictionary.
+        If it's a Pydantic model, convert it to a dict.
+        If it's a list, convert each element.
+        Otherwise, convert the object to a string.
+
+        Args:
+            obj (Any): The object to ensure is a dictionary.
+
+        Returns:
+            Dict[str, Any]: The standardized dictionary.
+        """
+        if isinstance(obj, dict):
+            return {k: self._ensure_serializable(v) for k, v in obj.items()}
+        elif hasattr(obj, 'dict'):
+            return {k: self._ensure_serializable(v) for k, v in obj.dict().items()}
+        elif isinstance(obj, list):
+            return {f"item_{i}": self._ensure_serializable(item) for i, item in enumerate(obj)}
+        else:
+            return {"value": str(obj)}
+
+    def _ensure_serializable(self, obj: Any) -> Any:
+        """
+        Recursively ensures that an object is JSON serializable.
+        Converts non-serializable objects to strings.
+
+        Args:
+            obj (Any): The object to serialize.
+
+        Returns:
+            Any: The JSON serializable object.
+        """
+        if isinstance(obj, (str, int, float, bool, type(None))):
+            return obj
+        elif isinstance(obj, dict):
+            return self._ensure_dict(obj)
+        elif isinstance(obj, list):
+            return [self._ensure_serializable(item) for item in obj]
+        else:
+            return str(obj)
+
+# Example usage
+if __name__ == "__main__":
+    llm_config = {
+        "model": "gpt-4",
+        "api_key": "your-api-key-here"
+    }
+
+    # Initialize LLM instance
+    llm = create_llm_instance(llm_config)
+
+    # Load trading data (ensure the path is correct)
+    trading_data = vbt.Portfolio.from_pickle("path/to/your/trading_data.pickle")
+
+    # Initialize TradingWorkflow
+    trading_workflow = Workflow(
+        name="TradingStrategyOptimization",
+        llm=llm,
+        dataset="Trading",
+        trading_data=trading_data
+    )
+
+    # Define initial strategy parameters
+    initial_params = StrategyParameters(
+        take_profit=0.05,
+        stop_loss=0.03,
+        sl_window=400,
+        max_orders=3,
+        post_buy_delay=2,
+        post_sell_delay=5,
+        macd_signal_fast=120,
+        macd_signal_slow=260,
+        macd_signal_signal=90,
+        min_macd_signal_threshold=0.0,
+        max_macd_signal_threshold=0.0,
+        enable_sl_mod=False,
+        enable_tp_mod=False
+    )
+
+    # Execute the workflow asynchronously
+    async def execute_workflow():
+        results, cost = await trading_workflow(initial_params)
+        print(f"Optimization results: {results}")
+        print(f"Total cost: {cost}")
+
+    asyncio.run(execute_workflow())
+```
+
+## Workflow Components
+
+### 1. Parameter Optimization
+
+Utilizes an optimizer to refine the initial trading parameters based on historical trading data. The optimizer leverages AI-driven techniques to identify parameter configurations that maximize desired performance metrics.
+
+### 2. Strategy Evaluation
+
+Conducts backtests on the optimized parameters to assess their effectiveness. The evaluation focuses on key performance indicators such as total return, Sharpe ratio, and maximum drawdown.
+
+### 3. Result Logging
+
+Captures and logs the results of the optimization process, including the optimized parameters, backtest outcomes, and associated costs. This ensures transparency and facilitates future analysis.
+
+## Integration with MetaGPT
+
+The Trading Strategy Optimization Workflow leverages the **MetaGPT** framework to manage and execute its components efficiently.
+
+- **Custom Actions:** Defines specialized actions tailored to the optimization process.
+- **Prompts:** Utilizes structured prompts to guide AI-driven tasks, ensuring consistency and accuracy.
+- **Asynchronous Operations:** Enhances performance by executing tasks concurrently, reducing overall execution time.
+
+## Example Workflow Execution
+
+The following example demonstrates how to execute the Trading Strategy Optimization Workflow:
+
+```bash
+python -m Trading.workflows.round_1.graph
+```
+
+## Benefits
+
+- **Automation:** Reduces manual intervention, streamlining the optimization process.
+- **Scalability:** Easily adapts to larger datasets and more complex strategies.
+- **Efficiency:** Asynchronous execution and recursive optimization techniques expedite the workflow.
+- **Transparency:** Comprehensive logging facilitates tracking and analysis of optimization outcomes.
+
+## Best Practices
+
+- **Parameter Initialization:** Start with well-defined initial parameters to guide the optimization process effectively.
+- **Data Integrity:** Ensure the trading data is clean, accurate, and appropriately formatted before initiating the workflow.
+- **Logging:** Regularly review logs to monitor workflow execution and identify potential issues promptly.
+- **Modularity:** Maintain a modular structure within `graph.py` to facilitate easy updates and scalability.
+
+## Conclusion
+
+The `graph.py` file encapsulates the Trading Strategy Optimization Workflow, a cornerstone of the StratOptimus-TradingWizard project. By automating the optimization process and integrating advanced AI-driven techniques, this workflow significantly enhances the development and refinement of trading strategies, ensuring robust and high-performing outcomes.
+
+For further details on related components, refer to the [Actions](/key-functional-components/actions) and [Prompts](/key-functional-components/prompts) sections.
