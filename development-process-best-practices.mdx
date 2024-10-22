@@ -1,5 +1,3 @@
-import { Callout, Steps, Step } from "nextra-theme-docs";
-
 # Development Process and Best Practices
 
 The **StratOptimus-TradingWizard** project is developed with a structured methodology that adheres to best practices aimed at ensuring code quality, efficiency, and maintainability. This section provides an overview of the development processes, highlighting key practices that contribute to the project's success.
@@ -90,6 +88,35 @@ Ensuring robust error handling and validation protocols is critical to maintain 
 Implementing solid error handling protects the system against unexpected market data anomalies.
 </Callout>
 
+### [Asynchronous Programming](/development-process-best-practices/asynchronous-programming)
+
+The project leverages asynchronous programming to enhance performance and scalability, especially during optimization runs.
+
+- **Async Functions**: Utilize `async def` for functions that involve I/O-bound operations or can benefit from concurrency.
+- **Concurrency Management**: Manage concurrent tasks efficiently using `asyncio`, ensuring optimal resource utilization.
+- **Error Propagation**: Properly handle exceptions within asynchronous contexts to maintain application stability.
+
+### [Configuration Management](/development-process-best-practices/configuration-management)
+
+Effective management of configuration settings is crucial for adaptability and security.
+
+- **Environment Variables**: Store sensitive information such as API keys and database credentials in environment variables using libraries like `dotenv`.
+- **YAML Configuration Files**: Use YAML files for defining and managing project settings, enabling easy modifications and environment-specific configurations.
+- **Dynamic Configuration Loading**: Implement functions to dynamically load and validate configuration settings at runtime.
+
+### [Logging Practices](/development-process-best-practices/logging-practices)
+
+Comprehensive logging is essential for monitoring, debugging, and maintaining the application.
+
+- **Structured Logging**: Use consistent logging formats to capture timestamps, log levels, and messages.
+- **Log Levels**: Utilize appropriate log levels (`INFO`, `WARNING`, `ERROR`, etc.) to categorize log messages effectively.
+- **Error Logging**: Ensure that all exceptions and critical errors are logged with sufficient detail for troubleshooting.
+
+### [Asynchronous Optimization Processes](/development-process-best-practices/asynchronous-optimization-processes)
+
+- **Parallel Evaluations**: Implement parallel evaluations during optimization to expedite performance using parameters like `parallel_evaluations`.
+- **Concurrency Control**: Manage the number of concurrent tasks to prevent resource exhaustion and ensure system responsiveness.
+
 ## Conclusion
 
-The **StratOptimus-TradingWizard** project thrives on clearly defined processes and well-established practices. By adhering to these guidelines, we ensure the delivery of high-performance, reliable trading strategies that effectively respond to the demands of the financial markets. For more detailed guidelines on specific areas, refer to the respective subsections: [Code Style and Structure](/development-process-best-practices/code-style-structure), [JAX Best Practices](/development-process-best-practices/jax-best-practices), and [Error Handling and Validation](/development-process-best-practices/error-handling-validation).
+The **StratOptimus-TradingWizard** project thrives on clearly defined processes and well-established practices. By adhering to these guidelines, we ensure the delivery of high-performance, reliable trading strategies that effectively respond to the demands of the financial markets. For more detailed guidelines on specific areas, refer to the respective subsections: [Code Style and Structure](/development-process-best-practices/code-style-structure), [JAX Best Practices](/development-process-best-practices/jax-best-practices), [Error Handling and Validation](/development-process-best-practices/error-handling-validation), [Asynchronous Programming](/development-process-best-practices/asynchronous-programming), [Configuration Management](/development-process-best-practices/configuration-management), and [Logging Practices](/development-process-best-practices/logging-practices).
