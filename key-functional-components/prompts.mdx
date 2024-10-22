@@ -1,5 +1,3 @@
-import { Callout, Steps, Step } from "nextra-theme-docs";
-
 # Prompts
 
 In the **StratOptimus-TradingWizard** project, **Prompts** play a pivotal role in guiding AI-driven tasks to ensure consistency and accuracy. They are akin to templates that provide a structured outline for the AI to follow, helping it generate reliable and contextually appropriate responses. This section delves into the key aspects of prompts, their usage, and how they integrate into the project's workflow.
@@ -26,7 +24,24 @@ PARAMETER_OPTIMIZATION_PROMPT = """
 Optimize the following trading strategy parameters based on historical performance data. Provide the optimized values for each parameter to maximize the strategy's effectiveness.
 
 Current Parameters:
-{current_parameters}
+{
+    "take_profit": 0.08,
+    "stop_loss": 0.12,
+    "sl_window": 400,
+    "max_orders": 3,
+    "order_size": 0.0025,
+    "post_buy_delay": 2,
+    "post_sell_delay": 5,
+    "macd_signal_fast": 120,
+    "macd_signal_slow": 260,
+    "macd_signal_signal": 90,
+    "min_macd_signal_threshold": 0.0,
+    "max_macd_signal_threshold": 0.0,
+    "enable_sl_mod": False,
+    "enable_tp_mod": False,
+    "ma_window": 20,
+    "fees": 0.001
+}
 
 In your response:
 1. Suggest optimized values for each parameter.
