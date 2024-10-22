@@ -1,5 +1,3 @@
-import { Callout, Steps, Step } from "nextra-theme-docs";
-
 # Code Style and Structure
 
 A well-defined code style and structure are crucial for the maintainability and readability of any software project. In the **StratOptimus-TradingWizard** project, we adhere to industry-standard best practices to ensure consistent and efficient code. This section outlines these practices and offers guidance on how they are implemented within the project.
@@ -18,6 +16,13 @@ We strictly follow the [PEP 8](https://www.python.org/dev/peps/pep-0008/) guidel
 <Callout>
 It's recommended to use tools like `flake8` or `pylint` to automatically check your code for PEP 8 compliance.
 </Callout>
+
+### Avoiding Duplicate Imports and Path Insertions
+
+Duplicate imports and redundant path insertions can lead to confusion and potential errors. Ensure that each module or package is imported only once and that the `sys.path` is modified minimally and intentionally.
+
+- **Single Path Insertion:** Avoid inserting the same path multiple times into `sys.path`.
+- **No Redundant Imports:** Ensure that each import statement is unique and necessary. Remove any duplicate imports to maintain clarity.
 
 ## Modular Design
 
@@ -48,7 +53,7 @@ best_trading_strategy/
 Naming conventions play a crucial role in conveying the intent of code components. In our project, we ensure that names are descriptive and self-explanatory.
 
 - **Variables and Functions:** Use clear and descriptive names like `learning_rate`, `optimize_parameters`, and `fetch_market_data`.
-- **Consistency:** Stick to a single naming convention throughout the project, such as using snake_case for variables and functions.
+- **Consistency:** Stick to a single naming convention throughout the project, such as using `snake_case` for variables and functions.
 
 <Steps>
 
@@ -61,6 +66,51 @@ When defining a variable to store user inputs, use a name that reflects its purp
 For functions, use action-oriented names. For example, a function that processes trading data should be named `process_trading_data`.
 
 </Steps>
+
+## Proper Configuration Management
+
+Effective management of configurations is essential for maintaining flexibility and scalability in the project.
+
+- **Environment Variables:** Utilize environment variables for sensitive information and configuration settings. Use libraries like `dotenv` to manage these variables.
+- **Configuration Files:** Organize configuration settings in structured files (e.g., YAML, JSON) and load them appropriately within the codebase.
+
+### Example
+
+```python
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
+# Load configuration
+from scripts.config_utils import load_config
+config = load_config(os.environ.get("TRADING_CONFIG_PATH", "config/trading_config.yaml"))
+```
+
+## Logging Best Practices
+
+Proper logging is vital for monitoring, debugging, and maintaining the application.
+
+- **Consistent Logging Configuration:** Set up logging configurations at the entry point of the application to ensure consistency across all modules.
+- **Appropriate Log Levels:** Use appropriate log levels (`DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`) to categorize log messages.
+- **Log Handlers:** Direct logs to multiple destinations (e.g., files, stdout) as needed.
+
+### Example
+
+```python
+import logging
+import sys
+
+# Set up logging configuration
+logging.basicConfig(
+    level=logging.DEBUG,  # Set to DEBUG to capture all levels of logs
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler("workflow_errors.log"),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
+```
 
 ## Avoiding In-Place Mutations
 
@@ -75,6 +125,28 @@ While the project is built using Python, following functional programming princi
 
 - **Pure Functions:** Implement functions that do not produce side effects and whose output solely depends on their inputs.
 - **Higher-Order Functions:** Utilize higher-order functions that can take other functions as arguments or return them.
+
+## Error Handling and Validation
+
+Robust error handling and input validation are crucial for building reliable applications.
+
+- **Input Validation:** Always validate input shapes and data types before performing computations.
+- **Exception Handling:** Use try-except blocks to handle potential exceptions gracefully and provide informative error messages.
+- **Logging Errors:** Log errors with sufficient context to facilitate debugging.
+
+### Example
+
+```python
+try:
+    # Some operation
+    result = perform_operation(data)
+except ValueError as ve:
+    logger.error(f"ValueError encountered: {ve}")
+    raise
+except Exception as e:
+    logger.error(f"An unexpected error occurred: {e}", exc_info=True)
+    raise
+```
 
 ## Example Code
 
@@ -99,4 +171,151 @@ def calculate_sharpe_ratio(returns, risk_free_rate):
 
 This function is concise, well-documented, and adheres to all discussed coding standards.
 
-In conclusion, adhering to these code style and structure guidelines ensures that the **StratOptimus-TradingWizard** project remains easy to navigate, understand, and extend. For more on our development practices, see the [Development Process and Best Practices](/development-process-best-practices).
+## Updated Practices Based on Recent Code Changes
+
+### Avoiding Duplicate Imports and Path Insertions
+
+Recent updates in the codebase have highlighted the importance of eliminating duplicate import statements and redundant path insertions. Ensure that:
+
+- **Each module or package is imported only once.**
+- **`sys.path.insert()` is used minimally and without duplication.**
+
+### Proper Configuration and Parameter Handling
+
+With the addition of new parameters such as `ma_window` and `fees` in configuration files, it's essential to:
+
+- **Include default values with type hints in configuration classes (e.g., Pydantic models).**
+- **Ensure all configuration parameters are loaded and validated appropriately.**
+
+### Enhanced Logging Configuration
+
+Recent scripts have incorporated more detailed logging configurations to capture essential debugging information. Best practices include:
+
+- **Setting appropriate log levels (`DEBUG`, `INFO`, etc.) based on the environment (development, production).**
+- **Directing logs to both files and standard output for comprehensive monitoring.**
+
+### Functional Programming and Asynchronous Patterns
+
+The introduction of asynchronous functions and recursive optimization workflows emphasizes the need to:
+
+- **Adopt asynchronous programming patterns where appropriate to enhance performance.**
+- **Ensure functions are pure and free of side effects to maintain compatibility with JIT compilation and other optimizations.**
+
+### Example of Updated Best Practices in Code
+
+```python
+import asyncio
+import logging
+import os
+import sys
+from datetime import datetime
+from typing import Dict, Any
+
+import json
+import vectorbtpro as vbt
+from dotenv import load_dotenv
+from metagpt.configs.llm_config import LLMConfig
+from metagpt.provider.llm_provider_registry import create_llm_instance
+from scripts.config_utils import load_config
+from scripts.optimized.Trading.backtester_module import load_trade_data
+from scripts.optimized.Trading.recursive_optimization import recursive_optimization
+
+# Add the project root directory to sys.path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("run_optimization.log"),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
+
+# Load environment variables from .env file
+load_dotenv()
+
+async def main():
+    try:
+        # Load configuration
+        config_path = os.environ.get("TRADING_CONFIG_PATH", "config/trading_config.yaml")
+        config = load_config(config_path)
+        
+        # Create LLM instance
+        llm_config = LLMConfig(**config["llm_config"])
+        llm = create_llm_instance(llm_config)
+
+        # Create output directory
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_dir = f"output/trading_optimization_{timestamp}"
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Load dataset
+        dataset = config.get("dataset", [])
+        
+        # Define initial parameters
+        initial_params = config.get("initial_params", {
+            "take_profit": 0.08,
+            "stop_loss": 0.12,
+            "sl_window": 400,
+            "max_orders": 3,
+            "post_buy_delay": 2,
+            "post_sell_delay": 5,
+            "macd_signal_fast": 120,
+            "macd_signal_slow": 260,
+            "macd_signal_signal": 90,
+            "min_macd_signal_threshold": 0.0,
+            "max_macd_signal_threshold": 0.0,
+            "enable_sl_mod": False,
+            "enable_tp_mod": False,
+            "ma_window": 20,
+            "fees": 0.001
+        })
+        
+        # Load trading data
+        trading_data = load_trade_data("big_optimize_1016.pkl")
+
+        if trading_data is None:
+            logger.error("Failed to load trading data. Please ensure the pickle file exists and is accessible.")
+            return
+
+        # Create a dataset with a subset of assets for optimization
+        dataset = list(trading_data.keys())[:5]  # Use the first 5 assets for example
+        
+        # Run recursive optimization
+        best_strategy, best_performance = await recursive_optimization(
+            initial_params=initial_params,
+            dataset=dataset,
+            llm=llm,
+            trading_data=trading_data,
+            max_iterations=config.get("max_rounds", 45),
+            convergence_threshold=config.get("convergence_threshold", 0.01),
+            parallel_evaluations=config.get("parallel_evaluations", 5)
+        )
+
+        # Save the best strategy
+        if best_strategy:
+            with open(os.path.join(output_dir, "best_trading_strategy_final.json"), "w") as f:
+                json.dump(best_strategy, f, indent=2)
+            logger.info(f"Optimization completed. Best strategy saved to {output_dir}")
+            logger.info(f"Best performance: {best_performance}")
+        else:
+            logger.error("Optimization failed.")
+
+    except Exception as e:
+        logger.error(f"An error occurred: {str(e)}")
+        raise
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+This updated script follows best practices by eliminating duplicate imports and path insertions, configuring logging appropriately, and managing configurations effectively.
+
+## Summary
+
+Adhering to these code style and structure guidelines ensures that the **StratOptimus-TradingWizard** project remains easy to navigate, understand, and extend. By implementing PEP 8 compliance, modular design, descriptive naming, proper configuration management, robust logging, and avoiding in-place mutations, we maintain high code quality and facilitate seamless collaboration among developers. For more on our development practices, see the [Development Process and Best Practices](/development-process-best-practices).
